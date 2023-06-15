@@ -23,8 +23,8 @@
     <div class="row">
         {% for image in images %}
             <div class="col-md-4">
-                <a href="./static/images/{{ image }}" data-lightbox="{{ image }}" data-title="Image {{ image }}">
-                    <img src="./static/thumbnails/{{ image }}" alt="" class="img-fluid gallery-img rounded">
+                <a href="./static/images/{{ image.filename }}" data-lightbox="{{ image }}" data-title="{{ image.title }}">
+                    <img src="./static/thumbnails/{{ image.filename }}" alt="" class="img-fluid gallery-img rounded">
                 </a>
             </div>
         {% endfor %}

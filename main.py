@@ -98,8 +98,8 @@ def load_user(user_id):
 # Route for Home page
 @app.route("/")
 def home():
-    images = os.listdir("./static/thumbnails/")
-    latest = images[len(images)-3:]
+    all_images = ImageUpload.query.all()
+    latest = all_images[len(all_images)-3:]
     return render_template("index.html", images=latest)
 
 
@@ -194,10 +194,8 @@ def admin_dashboard():
 def delete(filename):
     all_images = ImageUpload.query.all()
     img_ids = {image.id:image.filename for image in all_images}
-    print(img_ids)
     for key,value in img_ids.items():
         if value == filename:
-            print(key)
             entry = ImageUpload.query.get(key)
             db.session.delete(entry)
             db.session.commit()
