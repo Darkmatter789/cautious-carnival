@@ -1,0 +1,24 @@
+{% include "header.html" %}
+
+<div class="container-fluid">
+    <div class="container">
+        <h1>Gallery</h1>
+    </div>
+    <div class="container container-fluid">
+        <div class="row">
+            {% for image in images %}
+                <div class="col-md-4">
+                    <a href="./static/images/{{ image.filename }}" data-lightbox="{{ image }}" data-title="{{ image.title }}">
+                        <img src="./static/thumbnails/{{ image.filename }}" alt="" class="img-fluid gallery-img rounded">
+                    </a>
+                    {% if current_user.is_authenticated: %}
+                    <a style="color: red;" href="{{url_for('delete', filename=image.filename) }}">✘</a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+{% include "footer.html" %} 

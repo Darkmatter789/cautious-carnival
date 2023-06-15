@@ -4,13 +4,13 @@
     <div id="carouselExampleSlidesOnly" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
           <div class="carousel-item active">
-            <img id="banner-img" src="../static/images/LayLake1.jpg" class="d-block w-100 img-fluid" alt="...">
+            <img id="banner-img" src="../static/banner/LayLake1-edit.jpg" class="d-block w-100 img-fluid" alt="...">
           </div>
           <div class="carousel-item">
-            <img id="banner-img" src="../static/images/MossRockSunrise5.jpg" class="d-block w-100 img-fluid" alt="...">
+            <img id="banner-img" src="../static/banner/lunareclips2-edit.jpg" class="d-block w-100 img-fluid" alt="...">
           </div>
           <div class="carousel-item">
-            <img id="banner-img" src="../static/images/P1000099.jpg" class="d-block w-100 img-fluid" alt="...">
+            <img id="banner-img" src="../static/banner/P1000099-edit.jpg" class="d-block w-100 img-fluid" alt="...">
           </div>
         </div>
     </div>
@@ -18,15 +18,19 @@
 <hr>
 <div class="">
     <h2>Latest Additions</h2>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col">
-                <img id="new" src="../static/images/Birdinthecity2.jpg" class="rounded mx-auto float-start" alt="">
-                <img id="new" src="../static/images/Reflection1.JPG" class="rounded mx-auto float-none" alt="">
-                <img id="new" src="../static/images/Cocacolaworker1B&W.jpg" class="rounded mx-auto float-end" alt="">
+</div>
+<div class="container container-fluid">
+    <div class="row">
+        {% for image in images %}
+            <div class="col-md-4">
+                <a href="./static/images/{{ image }}" data-lightbox="{{ image }}" data-title="Image {{ image }}">
+                    <img src="./static/thumbnails/{{ image }}" alt="" class="img-fluid gallery-img rounded">
+                </a>
             </div>
-        </div>
+        {% endfor %}
     </div>
 </div>
+
+
 
 {% include "footer.html" %} 

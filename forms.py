@@ -5,9 +5,15 @@ from flask_ckeditor import CKEditorField
 
 
 class LoginForm(FlaskForm):
-    username = EmailField("Username", validators=[DataRequired()])
+    username = StringField("Username", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("Sign in")
+
+
+class RegisterForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
+    submit = SubmitField("Register")
 
 
 class EmailForm(FlaskForm):
@@ -23,7 +29,6 @@ class EmailForm(FlaskForm):
 
 
 class UploadImageForm(FlaskForm):
-    title = StringField("Image Title", validators=[DataRequired()])
-    img_url = StringField("Image URL", validators=[Optional(), URL()])
-    img_file = FileField("Upload an Image", validators=[Optional()])
+    title = StringField("Image Title", validators=[Optional()])
+    file = FileField("Upload an Image", validators=[Optional()])
     submit = SubmitField("Submit")

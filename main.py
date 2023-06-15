@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, abort
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
+from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
 from functools import wraps
@@ -8,12 +9,15 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from dotenv import load_dotenv
 from contact import Contact
-from forms import EmailForm, LoginForm
+from forms import EmailForm, LoginForm, UploadImageForm, RegisterForm
 from PIL import Image
 import imageio
 import skimage.transform as sk
 import numpy as np
 import os
+
+
+load_dotenv()
 
 
 app = Flask(__name__)
@@ -30,28 +34,44 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
+def create_thumbnail(filename):
+    dir_path = './static/images/' + filename
+    thumbnail_dir = './static/thumbnails/'
+    thumbnail_path = os.path.join(thumbnail_dir, filename)
+    image = imageio.imread(dir_path).astype(np.uint8)
+    resized_image = sk.resize(image, (300, 400))
+    pillow_image = Image.fromarray((resized_image * 255).astype(np.uint8))
+    pillow_image.save(thumbnail_path, "JPEG")
+
+
 def upload_img(img_obj):
     filename = secure_filename(img_obj.filename)
-    path = "./static/uploads/" + filename
+    path = "./static/images/" + filename
     img_obj.save((path))
-    image = imageio.imread(path).astype(np.uint8)
-    resized_image = sk.resize(image, (400, 600))
-    pillow_image = Image.fromarray((resized_image * 255).astype(np.uint8))
-    pillow_image.save(path)
-    
+    create_thumbnail(filename)
+
 
 def delete_img(img_filename):
-    file_path = os.path.join('./static/uploads', img_filename)
+    file_path = os.path.join('./static/images', img_filename)
+    thumb_path = os.path.join('./static/thumbnails/', img_filename)
     if os.path.exists(file_path):
         os.remove(file_path)
+    if os.path.exists(thumb_path):
+        os.remove(thumb_path)
 
 
 class User(UserMixin, db.Model):
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(100), unique=True)
+    username = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
-    name = db.Column(db.String(1000))
+
+
+class ImageUpload(db.Model):
+    __tablename__ = "image"
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(250), nullable=False)
+    filename = db.Column(db.String(250), nullable=False)
 
 
 # Opens and creates database tables
@@ -78,13 +98,21 @@ def load_user(user_id):
 # Route for Home page
 @app.route("/")
 def home():
-    return render_template("index.html")
+    images = os.listdir("./static/thumbnails/")
+    latest = images[len(images)-3:]
+    return render_template("index.html", images=latest)
 
 
 # Route for Gallery page
-@app.route("/gallery")
+@app.route("/gallery", methods=["GET", "POST"])
 def gallery():
-    return render_template("gallery.html")
+    images = ImageUpload.query.all()
+    return render_template("gallery.html", images=images)
+
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
 
 
 # Route for Contact page
@@ -103,12 +131,78 @@ def contact():
     return render_template("contact.html", form=contact_form)
 
 
+@app.route("/admin-login", methods=["GET", "POST"])
+def login():
+    form = LoginForm()
+    all_users = User.query.all()
+    if form.validate_on_submit():
+        for user in all_users:
+            if form.username.data == user.username and check_password_hash(user.password, form.password.data):
+                login_user(user)
+                return redirect(url_for("admin_dashboard"))
+        if form.username != user.username:
+            flash("That username does not exist. Please try again")
+            return redirect(url_for("login"))
+        elif not check_password_hash(user.password, form.password.data):
+            flash("That password is incorrect. Please try again.")
+            return redirect(url_for("login"))
+    return render_template("admin-login.html", form=form)
+
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for("login"))
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    form = RegisterForm()
+    if form.validate_on_submit():
+        new_user = User(
+            username=form.username.data,
+            password=generate_password_hash(form.password.data, 'pbkdf2:sha256', 8)
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        load_user(new_user)
+        return redirect(url_for("admin_dashboard"))
+    return render_template("admin-login.html", form=form)
+
+
 # Route for Admin Dashboard page.
 @app.route("/admin-dashboard", methods=["GET", "POST"])
 @login_required
 @admin_only
 def admin_dashboard():
-    return render_template("admin-dashboard.html")
+    form = UploadImageForm()
+    if form.validate_on_submit():
+        img = ImageUpload(
+            title=form.title.data,
+            filename=form.file.data.filename
+        )
+        db.session.add(img)
+        db.session.commit()
+        upload_img(form.file.data)
+        return redirect(url_for("admin_dashboard"))
+    return render_template("admin-dashboard.html", form=form)
+
+
+@app.route("/delete/<filename>", methods=["GET", "POST"])
+@login_required
+@admin_only
+def delete(filename):
+    all_images = ImageUpload.query.all()
+    img_ids = {image.id:image.filename for image in all_images}
+    print(img_ids)
+    for key,value in img_ids.items():
+        if value == filename:
+            print(key)
+            entry = ImageUpload.query.get(key)
+            db.session.delete(entry)
+            db.session.commit()
+    delete_img(filename)
+    return redirect(url_for("gallery"))
 
 
 if __name__ == "__main__":

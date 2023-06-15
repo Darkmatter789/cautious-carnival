@@ -21,7 +21,9 @@
             {% endfor %}
           {% endif %} 
         {% endwith %}
+        <div class="col-sm-12 mx-auto form">
         {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+        </div>
       </div>
     </div>
   </div>

@@ -2,9 +2,9 @@
 {% import "bootstrap/wtf.html" as wtf %}
 
 <div class="container">
-    <h1>Contact Us</h1>
+    <h1>Contact Me</h1>
     <div class="contact-title">
-        <h2>Send Us a Message</h2>
+        <h2>Send Me a Message</h2>
         {% with messages = get_flashed_messages() %} 
             {% if messages %} 
                 {% for message in messages %} 
@@ -13,8 +13,9 @@
             {% endif %}
         {% endwith %}
     </div>
-    <div class="col-lg-3 col-md-4 col-sm-5 mx-auto content">
+    <div class="col-lg-3 col-md-4 col-sm-5 mx-auto contact">
         {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary"}) }}
     </div>
 </div>
+
 {% include "footer.html" %} 

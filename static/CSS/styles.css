@@ -14,15 +14,56 @@ hr {
 }
 
 
+.container {
+    padding-top: 5%;
+}
+
+
+.col {
+    padding: 0;
+}
+
+
+.latest {
+    margin: 2% 25%;
+}
+
+
+.gallery-img {
+    margin: 4%;
+}
+
+
+.form {
+    padding-bottom: 40%;
+    text-align: left;
+}
+
+
+.contact-title {
+    margin-top: 4%;
+}
+
+
 .navigation {
     text-align: right;
     padding-left: 45%;
 }
 
 
-.row {
-    text-align: center;
-    margin: 2% 25% 25% 2%;
+.self-img {
+    border-radius: 60%;
+    margin: 2% 0;
+}
+
+
+.page-footer {
+    padding-top: 3%;
+}
+
+
+#name {
+    color: black;
 }
 
 
@@ -30,8 +71,16 @@ hr {
     padding-left: 10%;
 }
 
-#new {
-    text-align: center;
+
+.new-img {
+    margin-top: 2%;
+    height: 200px;
+    width: 200px;
+}
+
+
+#new-img {
+    margin: 0 3%;
     height: 200px;
     width: 200px;
 }
