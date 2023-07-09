@@ -17,23 +17,42 @@ import numpy as np
 import os
 
 
+# Loads .env file with environment variables
 load_dotenv()
 
 
+# Creates Flask application instance
 app = Flask(__name__)
 
 
+# Fix proxy headers when application is behind a proxy server
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+
+# Set secret key for the application
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET')
+
+
+# Initialize CKEditor and Bootstrap extensions
 ckeditor = CKEditor(app)
 Bootstrap(app)
+
+
+# Initialize LoginManager for user authentication
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+
+# Configure SQLite database URI and track modifications
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///Users.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+
+# Initialize SQLAlchemy database
 db = SQLAlchemy(app)
 
 
+# Function to create a thumbnail image
 def create_thumbnail(filename):
     dir_path = './static/images/' + filename
     thumbnail_dir = './static/thumbnails/'
@@ -44,6 +63,7 @@ def create_thumbnail(filename):
     pillow_image.save(thumbnail_path, "JPEG")
 
 
+# Function to handle image upload
 def upload_img(img_obj):
     filename = secure_filename(img_obj.filename)
     path = "./static/images/" + filename
@@ -51,6 +71,7 @@ def upload_img(img_obj):
     create_thumbnail(filename)
 
 
+# Function to delete an image
 def delete_img(img_filename):
     file_path = os.path.join('./static/images', img_filename)
     thumb_path = os.path.join('./static/thumbnails/', img_filename)
@@ -60,6 +81,7 @@ def delete_img(img_filename):
         os.remove(thumb_path)
 
 
+# User model representing a user in the database
 class User(UserMixin, db.Model):
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
@@ -67,6 +89,7 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(100))
 
 
+# ImageUpload model representing an image in the database
 class ImageUpload(db.Model):
     __tablename__ = "image"
     id = db.Column(db.Integer, primary_key=True)
@@ -74,7 +97,7 @@ class ImageUpload(db.Model):
     filename = db.Column(db.String(250), nullable=False)
 
 
-# Opens and creates database tables
+# Create database tables
 with app.app_context():
     db.create_all()
 
@@ -89,7 +112,7 @@ def admin_only(f):
     return decorator
 
 
-# Searches database for authenticated user. Returns 404 status if user not in database.
+# Callback function to load a user from the database
 @login_manager.user_loader
 def load_user(user_id):
     return db.get_or_404(User, user_id)
@@ -110,6 +133,7 @@ def gallery():
     return render_template("gallery.html", images=images)
 
 
+# Route for about page
 @app.route("/about")
 def about():
     return render_template("about.html")
@@ -131,6 +155,7 @@ def contact():
     return render_template("contact.html", form=contact_form)
 
 
+# Route for admin login page
 @app.route("/admin-login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
@@ -149,12 +174,14 @@ def login():
     return render_template("admin-login.html", form=form)
 
 
+# Route for logout
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for("login"))
 
 
+# Route for user registration
 @app.route("/register", methods=["GET", "POST"])
 def register():
     form = RegisterForm()
@@ -188,6 +215,7 @@ def admin_dashboard():
     return render_template("admin-dashboard.html", form=form)
 
 
+# Route for deleting an image
 @app.route("/delete/<filename>", methods=["GET", "POST"])
 @login_required
 @admin_only
@@ -203,5 +231,6 @@ def delete(filename):
     return redirect(url_for("gallery"))
 
 
+# Run the application
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)
